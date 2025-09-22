@@ -29,7 +29,7 @@ const ListDocumentsPage = ({handleChangePage} : ListDocuementsPageProps) => {
             .then(() => {
                 console.log('Document deleted successfully');
                 const newDocumentsList = documents.filter(doc => doc.id !== selectedDocumentId);
-                setDocuments({ ... newDocumentsList });
+                setDocuments([ ... newDocumentsList ]);
                 setSelectedDocumentId(null);
             })
             .catch((error) => {

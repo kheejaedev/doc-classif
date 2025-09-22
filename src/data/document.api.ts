@@ -2,35 +2,35 @@ import axios from 'axios';
 import type { Document } from './types';
 
 const BASE_URL = 'https://interview-classification-api.onrender.com';
-const GET_DOCUMENTS_PATH = '/v1/documents';
-const GET_HEALTH_PATH = '/health';
-const POST_DOCUMENT_PATH = '/v1/documents/classify';
-const DELETE_DOCUMENT_PATH = '/v1/documents';
-const API_KEY = 'pKQwcC9uWDCW6yM3';
+const DOCUMENTS = 'v1/documents';
+const HEALTH = 'health';
+const CLASSIFY = 'classify';
+const apiKey = 'pKQwcC9uWDCW6yM3';
 
-export async function getDocuments() : Promise<Document[]> {
+export const apiClient = axios.create({
+    baseURL: BASE_URL,
+    headers: {
+        'x-api-key': apiKey,
+    },
+});
+
+export async function getDocuments() : Promise<Document[]> { // page: number = 1, limit: number = 10
     try {
-        const response = await axios.get(`${BASE_URL}${GET_DOCUMENTS_PATH}`, {
-            headers: {
-                'x-api-key': API_KEY,
-            },
-            // params: {
-            //     page: 1,
-            //     limit: 20
-            // }
-        });
+        const response = await apiClient.get(
+            `${BASE_URL}/${DOCUMENTS}` // `${BASE_URL}/${DOCUMENTS}?page=${page}&limit=${limit}`
+        );
         return response.data.results;
     } catch (error: any) {
-        // fix
-        throw new Error(error.response?.data?.message || 'Failed to fetch documents');
+        console.error('Failed to fetch documents: ', error);
+        throw error;
     }
 }
 
 export async function checkHealth() {
     try {
-        const response = await axios.get(`${BASE_URL}${GET_HEALTH_PATH}`, {
+        const response = await apiClient.get(`${BASE_URL}/${HEALTH}`, {
             headers: {
-                'x-api-key': API_KEY,
+                'x-api-key': apiKey,
             },
         });
         return response.data;
@@ -43,9 +43,9 @@ export async function uploadDocument(newDocument: File) {
     const formData = new FormData();
     formData.append('file', newDocument);
     try {
-        const response = await axios.post(`${BASE_URL}${POST_DOCUMENT_PATH}`, formData, {
+        const response = await apiClient.post(`${BASE_URL}/${DOCUMENTS}/${CLASSIFY}`, formData, {
             headers: {
-                'x-api-key': API_KEY,
+                'x-api-key': apiKey,
                 'Content-Type': 'multipart/form-data'
             },
         });
@@ -57,9 +57,9 @@ export async function uploadDocument(newDocument: File) {
 
 export async function deleteDocument(id: string) {
     try {
-        const response = await axios.delete(`${BASE_URL}${DELETE_DOCUMENT_PATH}/${id}`, {
+        const response = await apiClient.delete(`${BASE_URL}/${DOCUMENTS}/${id}`, {
             headers: {
-                'x-api-key': API_KEY,
+                'x-api-key': apiKey,
             },
         });
         return response.data;

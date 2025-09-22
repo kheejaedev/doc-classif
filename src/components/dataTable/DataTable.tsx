@@ -11,9 +11,11 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import { visuallyHidden } from "@mui/utils";
-import type { Document } from "../data/types";
-import { headCells } from "../data/tableHeadDefs";
+import type { Document } from "../../data/types";
+import { headCells } from "./tableHeadDefs";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { useCustomTable } from "../../hooks/useCustomTable";
+import { usePaginatedData } from "../../hooks/usePaginatedData";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -97,13 +99,8 @@ const DataTable = ({
   const [orderBy, setOrderBy] = React.useState<keyof Document>("createdAt");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(defaultRowsPerPage);
+
   const [rows, setRows] = React.useState<Document[]>(data);
-
-  React.useEffect(() => {
-    setRows(data);
-  }, [data]);
-
-  React.useEffect(() => {}, [rows]);
 
   React.useEffect(() => {
     setRowsPerPage(defaultRowsPerPage);
@@ -128,7 +125,10 @@ const DataTable = ({
     setOrderBy(property);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
     setPage(newPage);
   };
 
@@ -143,9 +143,70 @@ const DataTable = ({
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const visibleRows = [...rows]
-    .sort(getComparator(order, orderBy))
-    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const visibleRows = React.useMemo(
+    () =>
+      [...rows]
+        .sort(getComparator(order, orderBy))
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [order, orderBy, page, rowsPerPage]
+  );
+
+  const renderTablePagination = () => {
+    return (
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        component="div"
+        count={rows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    );
+  };
+
+  const renderVisibleRows = (visibleRows: Document[]) => {
+    return visibleRows.map((row: Document, index: number) => {
+      return (
+        <TableRow
+          id={index.toString()}
+          hover
+          role="checkbox"
+          tabIndex={-1}
+          key={row.id}
+          sx={{ cursor: "pointer" }}
+        >
+          <TableCell component="th" id={row.id} scope="row" padding="normal">
+            {row.originalName}
+          </TableCell>
+          <TableCell>{row.classification}</TableCell>
+          <TableCell align="right">{row.confidence}</TableCell>
+          <TableCell align="right">{row.size}</TableCell>
+          <TableCell align="right">{row.createdAt}</TableCell>
+          <TableCell padding="checkbox">
+            <IconButton
+              onClick={() => handleDeleteDocument(row)}
+              aria-label="delete"
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </TableCell>
+        </TableRow>
+      );
+    });
+  };
+
+  const renderEmptyRows = () => {
+    return (
+      <TableRow
+        style={{
+          height: 33 * emptyRows,
+        }}
+      >
+        <TableCell colSpan={6} />
+      </TableRow>
+    );
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -153,7 +214,7 @@ const DataTable = ({
         <TableContainer>
           <Table
             sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitlÅe"
+            aria-labelledby="tableTitle"
             size={"medium"}
           >
             <DataTableHead
@@ -162,60 +223,12 @@ const DataTable = ({
               onRequestSort={handleRequestSort}
             />
             <TableBody>
-              {visibleRows.map((row, index) => {
-                return (
-                  <TableRow
-                    id={index.toString()}
-                    hover
-                    role="checkbox"
-                    tabIndex={-1}
-                    key={row.id}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell
-                      component="th"
-                      id={row.id}
-                      scope="row"
-                      padding="normal"
-                    >
-                      {row.originalName}
-                    </TableCell>
-                    <TableCell>{row.classification}</TableCell>
-                    <TableCell align="right">{row.confidence}</TableCell>
-                    <TableCell align="right">{row.size}</TableCell>
-                    <TableCell align="right">{row.createdAt}</TableCell>
-                    <TableCell padding="checkbox">
-                      <IconButton
-                        onClick={() => handleDeleteDocument(row)}
-                        aria-label="delete"
-                      >
-                        <DeleteOutlineIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 33 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
+              {renderVisibleRows(visibleRows)}
+              {emptyRows > 0 && renderEmptyRows()}
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {renderTablePagination()}
       </Paper>
     </Box>
   );

@@ -92,12 +92,15 @@ const DataTable = ({
   setModalTitle,
   setModalMessage,
   selectRow,
+  searchValue,
 }: any) => {
   const [order, setOrder] = React.useState<Order>("asc");
   const [orderBy, setOrderBy] = React.useState<keyof Document>("createdAt");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(defaultRowsPerPage);
   const [rows, setRows] = React.useState<Document[]>(data);
+
+  console.log('search value - ', searchValue);
 
   React.useEffect(() => {
     setRows(data);

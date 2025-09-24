@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 interface Column<T> {
   id: string;
@@ -44,7 +44,7 @@ function useTable<T>({
   const [sorting, setSorting] = useState<{ columnId: string; order: 'asc' | 'desc' | null } | null>(null);
   const [currentPage, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const sortingRef = useRef(sorting);
+  // const sortingRef = useRef(sorting);
 
   // Setup columns with sorting and filtering handlers
   const columns = useMemo(() => {

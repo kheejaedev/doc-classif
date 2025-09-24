@@ -13,13 +13,14 @@ import InputAdornment from "@mui/material/InputAdornment";
 import CustomSnackbar from "../components/feedback/CustomSnackbar";
 import { insDocColDef } from "../components/insDocColDef";
 import CustomGrid from "../components/CustomGrid";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 interface ListDocuementsPageProps {
   handleChangePage: (page: string) => void;
 }
 
 const ListDocumentsPage = ({ handleChangePage }: ListDocuementsPageProps) => {
-  const [viewMode, setViewMode] = useState<string>("list");
+  const [viewMode] = useState<string>("list");
   const [documents, setDocuments] = useState<InsuranceDocument[]>([]);
   const [filteredDocuments, setFilteredDocuments] = useState<
     InsuranceDocument[]
@@ -47,13 +48,15 @@ const ListDocumentsPage = ({ handleChangePage }: ListDocuementsPageProps) => {
   // progress bar
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
 
-  const handleToggleView = () => {
-    if (viewMode === "list") {
-      setViewMode("grid");
-    } else {
-      setViewMode("list");
-    }
-  };
+  // const handleToggleView = () => {
+  //   if (viewMode === "list") {
+  //     setViewMode("grid");
+  //   } else {
+  //     setViewMode("list");
+  //   }
+  // };
+
+  const matches = useMediaQuery("(min-width:600px)");
 
   const handleOpenDeleteConfirmationModal = (selectedRowIds: string[]) => {
     const numRowsSelected = selectedRowIds.length;
@@ -184,7 +187,7 @@ const ListDocumentsPage = ({ handleChangePage }: ListDocuementsPageProps) => {
           variant="contained"
           startIcon={<AddIcon />}
         >
-          Add Document
+          {matches ? "Add Document" : ""}
         </Button>
         {/* <Button onClick={() => handleToggleView()}>Toggle View</Button> */}
       </div>

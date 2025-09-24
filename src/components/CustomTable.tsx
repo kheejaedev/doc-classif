@@ -8,7 +8,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import Button from "@mui/material/Button";
 import type {
   GridRowSelectionModel,
-  GridCallbackDetails,
+  // GridCallbackDetails,
 } from "@mui/x-data-grid";
 
 const paginationModel = { page: 0, pageSize: 5 };
@@ -46,7 +46,7 @@ const CustomTable = ({
 
   const handleRowSelectionModelChange = (
     rowSelectionModel: GridRowSelectionModel,
-    details: GridCallbackDetails
+    // details: GridCallbackDetails
   ) => {
     const rowIds = [...rowSelectionModel.ids].map((id) => id.toString());
     setSelectedRowIds(rowIds);

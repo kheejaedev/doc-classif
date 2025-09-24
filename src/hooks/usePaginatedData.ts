@@ -12,15 +12,15 @@ export function usePaginatedData<T>(data: T[], initialPageSize: number) {
     return data.slice(startIndex, startIndex + pageSize);
   }, [data, currentPage, pageSize]);
 
-  const setPage = (page: number) => {
-    if (page < 1) {
-      setCurrentPage(1);
-    } else if (page > totalPages) {
-      setCurrentPage(totalPages);
-    } else {
-      setCurrentPage(page);
-    }
-  };
+  // const setPage = (page: number) => {
+  //   if (page < 1) {
+  //     setCurrentPage(1);
+  //   } else if (page > totalPages) {
+  //     setCurrentPage(totalPages);
+  //   } else {
+  //     setCurrentPage(page);
+  //   }
+  // };
 
   const setNewPageSize = (newPageSize: number) => {
     setPageSize(newPageSize);

@@ -5,11 +5,13 @@ import type { InsuranceDocument } from "../data/types";
 import { DataGrid } from "@mui/x-data-grid";
 // import type { GridColDef } from "@mui/x-data-grid";
 // import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Button from "@mui/material/Button";
+// import Button from "@mui/material/Button";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type {
   GridRowSelectionModel,
-  // GridCallbackDetails,
+  GridCallbackDetails,
 } from "@mui/x-data-grid";
+import IconButton from "@mui/material/IconButton";
 
 const paginationModel = { page: 0, pageSize: 5 };
 
@@ -46,9 +48,16 @@ const CustomTable = ({
 
   const handleRowSelectionModelChange = (
     rowSelectionModel: GridRowSelectionModel,
-    // details: GridCallbackDetails
+    details: GridCallbackDetails
   ) => {
-    const rowIds = [...rowSelectionModel.ids].map((id) => id.toString());
+    let rowIds = [...rowSelectionModel.ids].map((id) => id.toString());
+    // select all
+    if (
+      details.reason === "multipleRowsSelection" &&
+      rowSelectionModel.type === "exclude"
+    ) {
+      rowIds = rows.map((row) => row.id);
+    }
     setSelectedRowIds(rowIds);
   };
 
@@ -56,13 +65,13 @@ const CustomTable = ({
     handleDeleteSelectedRows(selectedRowIds);
   };
 
-  console.log("rows - ", rows);
+  // console.log("rows - ", rows);
   return (
     <Box sx={{ width: "100%" }}>
+      <IconButton disabled={selectedRowIds.length === 0} onClick={handleDelete}>
+        <DeleteIcon />
+      </IconButton>
       <Paper sx={{ width: "100%" }}>
-        <Button disabled={selectedRowIds.length === 0} onClick={handleDelete}>
-          Delete
-        </Button>
         <DataGrid
           rows={rows}
           columns={colDefs}

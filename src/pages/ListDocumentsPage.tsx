@@ -187,7 +187,7 @@ const ListDocumentsPage = ({ handleChangePage }: ListDocuementsPageProps) => {
           variant="contained"
           startIcon={<AddIcon />}
         >
-          {matches ? "Add Document" : ""}
+          {matches ? "Upload" : ""}
         </Button>
         {/* <Button onClick={() => handleToggleView()}>Toggle View</Button> */}
       </div>

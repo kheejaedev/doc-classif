@@ -57,7 +57,6 @@ export const insDocColDef: GridColDef[] = [
     headerAlign: "right",
     align: "right",
     renderCell: (params) => {
-      console.log("params - ", params);
       return CustomStatusBar({ value: params.value * 100 });
     },
   },

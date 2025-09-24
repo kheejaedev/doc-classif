@@ -3,13 +3,6 @@ import { useState, useMemo } from 'react';
 type SortOrder = 'asc' | 'desc';
 
 interface UseTableOptions<T> {
-    headCells: Array<{
-        disablePadding: boolean;
-        id: keyof T;
-        label: string;
-        numeric: boolean;
-        alignRight: boolean;
-    }>;
     data: T[];
     initialSortKey?: keyof T;
     initialSortOrder?: SortOrder;
@@ -19,7 +12,6 @@ interface UseTableOptions<T> {
 }
 
 export function useCustomTable<T>({
-    headCells,
     data,
     initialSortKey,
     initialSortOrder = 'asc',

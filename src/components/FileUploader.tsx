@@ -19,7 +19,7 @@ const FileUploader = forwardRef<FileUploaderRef>(({}, ref) => {
   return (
     <div>
       <Dropzone
-        maxFiles={3}
+        maxFiles={10}
         onDrop={handleDrop}
         onError={console.error}
         src={files}

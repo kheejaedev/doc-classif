@@ -1,12 +1,7 @@
-import {
-  useState,
-  useEffect,
-  type ReactEventHandler,
-  type ChangeEvent,
-} from "react";
-import type { Document } from "../data/types";
+import { useState, useEffect, type ChangeEvent } from "react";
+import type { InsuranceDocument } from "../data/types";
 import { getDocuments, deleteDocument } from "../data/document.api";
-import DataTable from "../components/DataTable";
+import CustomTable from "../components/CustomTable";
 import { PAGE_UPLOAD } from "../constants";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
@@ -15,58 +10,113 @@ import ConfirmationModal from "../components/ConfirmationModal";
 import Input from "@mui/material/Input";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import Alert from "@mui/material/Alert";
-import CheckIcon from "@mui/icons-material/Check";
 import CustomSnackbar from "../components/feedback/CustomSnackbar";
+import { insDocColDef } from "../components/insDocColDef";
+import CustomGrid from "../components/CustomGrid";
 
 interface ListDocuementsPageProps {
   handleChangePage: (page: string) => void;
 }
 
 const ListDocumentsPage = ({ handleChangePage }: ListDocuementsPageProps) => {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<Document[]>([]);
+  const [viewMode, setViewMode] = useState<string>("list");
+  const [documents, setDocuments] = useState<InsuranceDocument[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<
+    InsuranceDocument[]
+  >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
-    null
-  );
-  const [modalTitle, setModalTitle] = useState<string>("");
-  const [modalMessage, setModalMessage] = useState<string>("");
+
+  // confirmation modal
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
+    useState<boolean>(false);
+  const [confirmationModalDisplayInfo, setConfirmationModalDisplayInfo] =
+    useState<{ title: string; message: string; action: string }>({
+      title: "",
+      message: "",
+      action: "",
+    });
+  const [currentProgress, setCurrentProgress] = useState<number>(0);
 
   // search bar
   const [searchValue, setSearchValue] = useState<string>("");
+
   // snack bar
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>("");
 
-  const handleDelete = () => {
-    if (selectedDocumentId === null) return;
+  // progress bar
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
 
-    setModalOpen(false);
-    console.log("Delete document with id:", selectedDocumentId);
-    deleteDocument(selectedDocumentId)
-      .then(() => {
-        const newDocumentsList = documents.filter(
-          (doc) => doc.id !== selectedDocumentId
-        );
-        setDocuments([...newDocumentsList]);
-        setFilteredDocuments([...newDocumentsList]);
-        setSearchValue("");
-        setSelectedDocumentId(null);
-        setIsSnackbarOpen(true); // repeated code
-        setSnackbarMessage("Document deleted successfully");
-      })
-      .catch((error) => {
-        setSelectedDocumentId(null);
-        setIsSnackbarOpen(true); // repeated code
-        setSnackbarMessage(`Document could not be deleted: ${error}`);
-      });
+  const handleToggleView = () => {
+    if (viewMode === "list") {
+      setViewMode("grid");
+    } else {
+      setViewMode("list");
+    }
   };
 
-  const handleCancel = () => {
-    setSelectedDocumentId(null);
-    setModalOpen(false);
+  const handleOpenDeleteConfirmationModal = (selectedRowIds: string[]) => {
+    const numRowsSelected = selectedRowIds.length;
+    const multipleRowsSelected = selectedRowIds.length > 1;
+
+    setSelectedDocumentIds(selectedRowIds);
+
+    setConfirmationModalDisplayInfo({
+      title: `Delete Document${multipleRowsSelected ? "s" : ""}`,
+      message: `Are you sure you want to delete ${
+        multipleRowsSelected ? "these " : "this"
+      }${multipleRowsSelected ? numRowsSelected : ""} selected document${
+        multipleRowsSelected ? "s" : ""
+      }? This action cannot be undone.`,
+      action: "delete",
+    });
+    setIsConfirmationModalOpen(true);
+  };
+
+  const clearModalState = () => {
+    setIsConfirmationModalOpen(false);
+    setConfirmationModalDisplayInfo({ title: "", message: "", action: "" });
+    setCurrentProgress(0);
+  };
+
+  const showSnackbar = (message: string) => {
+    setIsSnackbarOpen(true);
+    setSnackbarMessage(message);
+  };
+
+  const handleDeleteSelectedDocuments = async () => {
+    if (selectedDocumentIds === null || selectedDocumentIds.length === 0)
+      return;
+    const numSelectedDocuments = selectedDocumentIds.length;
+
+    try {
+      for (let i = 0; i < numSelectedDocuments; i++) {
+        const documentId: string = selectedDocumentIds[i];
+        await deleteDocument(documentId);
+        setCurrentProgress(Math.round(((i + 1) / numSelectedDocuments) * 100));
+      }
+      const newDocuments = documents.filter(
+        (document) => !selectedDocumentIds.includes(document.id)
+      );
+      setDocuments(newDocuments);
+      setFilteredDocuments(newDocuments);
+      clearModalState();
+      showSnackbar(
+        `Document${numSelectedDocuments > 1 ? "s" : ""} deleted successfully`
+      );
+    } catch (error) {
+      console.error("Error deleting files: ", error);
+      clearModalState();
+      showSnackbar(
+        `Document${
+          numSelectedDocuments > 1 ? "s" : ""
+        } could not be deleted: ${error}`
+      );
+    }
+  };
+
+  const handleCloseConfirmationModal = () => {
+    setIsConfirmationModalOpen(false);
   };
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -131,27 +181,35 @@ const ListDocumentsPage = ({ handleChangePage }: ListDocuementsPageProps) => {
         <Button
           onClick={() => handleChangePage(PAGE_UPLOAD)}
           size="small"
-          variant="outlined"
+          variant="contained"
           startIcon={<AddIcon />}
         >
           Add Document
         </Button>
+        {/* <Button onClick={() => handleToggleView()}>Toggle View</Button> */}
       </div>
-      <DataTable
-        data={filteredDocuments}
-        defaultRowsPerPage={5}
-        handleModalOpen={setModalOpen}
-        setModalTitle={setModalTitle}
-        setModalMessage={setModalMessage}
-        selectRow={setSelectedDocumentId}
-        searchValue={searchValue}
-      />
+      {viewMode === "list" ? (
+        <CustomTable
+          data={filteredDocuments}
+          searchValue={searchValue}
+          colDefs={insDocColDef}
+          handleDeleteSelectedRows={handleOpenDeleteConfirmationModal}
+        />
+      ) : (
+        <CustomGrid
+          data={filteredDocuments}
+          searchValue={searchValue}
+          handleDeleteSelectedRows={handleOpenDeleteConfirmationModal}
+        />
+      )}
       <ConfirmationModal
-        open={isModalOpen}
-        title={modalTitle}
-        message={modalMessage}
-        onConfirm={handleDelete}
-        onCancel={handleCancel}
+        open={isConfirmationModalOpen}
+        title={confirmationModalDisplayInfo.title}
+        message={confirmationModalDisplayInfo.message}
+        onConfirm={handleDeleteSelectedDocuments}
+        onCancel={handleCloseConfirmationModal}
+        currentProgress={currentProgress}
+        action={confirmationModalDisplayInfo.action}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Document } from "./types";
+import type { InsuranceDocument } from "./types";
 
 const apiKey = import.meta.env.VITE_API_KEY;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -14,7 +14,7 @@ export const apiClient = axios.create({
   },
 });
 
-export async function getDocuments(): Promise<Document[]> {
+export async function getDocuments(): Promise<InsuranceDocument[]> {
   // page: number = 1, limit: number = 10
   try {
     const response = await apiClient.get(

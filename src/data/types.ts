@@ -3,7 +3,7 @@ export type HealthCheckResult = {
     timestamp: string;
 }
 
-export type Document = {
+export type InsuranceDocument = {
     id: string;
     originalName: string;
     classification: string;
@@ -20,12 +20,4 @@ export type DocumentUploadResult = {
     classification: string;
     confidence: number;
     createdAt: string;
-}
-
-export interface HeadCell {
-  disablePadding: boolean;
-  id: keyof Document;
-  label: string;
-  numeric: boolean;
-  alignRight: boolean
 }

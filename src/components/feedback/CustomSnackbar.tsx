@@ -26,7 +26,7 @@ export default function CustomSnackbar({
         onClose={() => setIsOpen(false)}
         message={snackbarMessage}
         key={vertical + horizontal}
-        autoHideDuration={2000}
+        autoHideDuration={3000}
       />
     </Box>
   );
